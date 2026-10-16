@@ -1,0 +1,17 @@
+# Pixel 9a
+
+# Updated semi-manually via pixel/update-any-var.sh
+
+readonly build_id="CP3A.260905.009"
+
+# Updated automatically via pixel/update-device-vars.sh
+
+readonly build_number="16091614"
+
+readonly image_url="https://dl.google.com/dl/android/aosp/tegu-cp3a.260905.009-factory-0c2f9053.zip"
+readonly image_sha256="0c2f9053bf064b09483c937cf16f4824371afe92fa057029d6f9237668d1c0d7"
+
+readonly flash_url="https://flash.android.com/build/16091614?target=tegu-user&signed"
+
+readonly ota_url="https://dl.google.com/dl/android/aosp/tegu-ota-cp3a.260905.009-6750e3df.zip"
+readonly ota_sha256="6750e3df5f8d0723fd2f16dc35722241c23dd84e6d1306009cc675967cdf14eb"

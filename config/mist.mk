@@ -1,0 +1,164 @@
+# BuildFingerprint spoof to fix RCS/Wallet
+# Applies to all devices EXCEPT currently-supported Pixels (they don't need it)
+TARGET_ENABLE_FP_OVERRIDE ?= true
+ifeq ($(TARGET_ENABLE_FP_OVERRIDE),true)
+ifeq ($(filter $(LINEAGE_BUILD), \
+    cheetah panther lynx \
+    husky shiba akita felix tangorpro \
+    tokay caiman komodo comet tegu \
+    mustang blazer frankel rango \
+    stallion \
+    ),)
+PRODUCT_BUILD_PROP_OVERRIDES += \
+    BuildFingerprint=google/grizzly_beta/grizzly:17/CP41.260828.004.A8/16319058:user/release-keys
+endif
+endif
+
+# Additional packages
+PRODUCT_PACKAGES += \
+   AppDataBackup \
+   AxSandbox \
+   BatteryStatsViewer \
+   FossifyGallery \
+   GameSpace \
+   Updater \
+   OmniJaws \
+   OmniStyle
+
+# LMO packages
+PRODUCT_PACKAGES += \
+    LMOFreeform \
+    LMOFreeformSidebar
+
+# Mosey
+TARGET_INCLUDE_MOSEY ?= false
+TARGET_USES_MOSEY_NOPAUTH ?= false
+ifeq ($(TARGET_INCLUDE_MOSEY),true)
+ifeq ($(TARGET_USES_MOSEY_NOPAUTH),true)
+$(call inherit-product, vendor/gms-mosey/mosey_nopauth/mosey-vendor.mk)
+else
+$(call inherit-product, vendor/gms-mosey/mosey/mosey-vendor.mk)
+endif
+endif
+
+# Enable Material Design 3 Expressive
+PRODUCT_PRODUCT_PROPERTIES += is_expressive_design_enabled=true
+
+# Cloned app exemption
+PRODUCT_COPY_FILES += \
+    vendor/lineage/prebuilt/common/etc/sysconfig/preinstalled-packages-platform-mist-product.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/preinstalled-packages-platform-mist-product.xml
+
+# BtHelper
+PRODUCT_PACKAGES += \
+    BtHelper
+
+# ColumbusService
+ifneq ($(TARGET_SUPPORTS_QUICK_TAP),false)
+PRODUCT_PACKAGES += \
+    ColumbusService
+endif
+
+# DeviceAsWebcam
+ifeq ($(TARGET_BUILD_DEVICE_AS_WEBCAM), true)
+    PRODUCT_PACKAGES += \
+        DeviceAsWebcam
+
+    PRODUCT_VENDOR_PROPERTIES += \
+        ro.usb.uvc.enabled=true
+endif
+
+# Face Unlock
+ifeq ($(TARGET_SUPPORTS_64_BIT_APPS),true)
+ifeq ($(TARGET_SUPPORTS_GFU),true)
+$(call inherit-product-if-exists, vendor/google/faceunlock/config.mk)
+else
+PRODUCT_PACKAGES += \
+    FaceUnlock
+
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    ro.face.sense_service=true
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.biometrics.face.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/permissions/android.hardware.biometrics.face.xml
+endif
+endif
+
+# Use a generic profile based boot image by default
+PRODUCT_USE_PROFILE_FOR_BOOT_IMAGE := true
+PRODUCT_COPY_FILES += \
+    art/build/boot/preloaded-classes:$(TARGET_COPY_OUT_SYSTEM)/etc/preloaded-classes
+
+PRODUCT_DEX_PREOPT_BOOT_IMAGE_PROFILE_LOCATION := \
+    art/build/boot/boot-image-profile.txt
+
+PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
+    system/etc/preloaded-classes
+
+# Additional props
+PRODUCT_PRODUCT_PROPERTIES += \
+    dalvik.vm.debug.alloc=0 \
+    ro.url.legal=http://www.google.com/intl/%s/mobile/android/basic/phone-legal.html \
+    ro.url.legal.android_privacy=http://www.google.com/intl/%s/mobile/android/basic/privacy.html \
+    ro.error.receiver.system.apps=com.google.android.gms \
+    ro.setupwizard.enterprise_mode=1 \
+    ro.atrace.core.services=com.google.android.gms,com.google.android.gms.ui,com.google.android.gms.persistent \
+    ro.setupwizard.rotation_locked=true \
+    ro.com.google.ime.theme_id=5 \
+    ro.opa.eligible_device=true \
+    ro.com.android.wifi-watchlist=GoogleGuest \
+    ro.setupwizard.network_required=false \
+    ro.setupwizard.gservices_delay=-1 \
+    ro.setupwizard.mode=OPTIONAL \
+    setupwizard.feature.predeferred_enabled=false \
+    drm.service.enabled=true \
+    persist.sys.dun.override=0 \
+    persist.sys.disable_rescue=true
+
+# Disable touch video heatmap to reduce latency, motion jitter, and CPU usage
+# on supported devices with Deep Press input classifier HALs and models
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.input.video_enabled=false
+
+# Disable async MTE on system_server
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    arm64.memtag.process.system_server=off
+
+# Enable dex2oat64 to do dexopt
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
+    dalvik.vm.dex2oat64.enabled=true
+
+# PERF_ANIM_OVERRIDE
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.sys.activity_anim_perf_override=$(PERF_ANIM_OVERRIDE)
+
+ifeq ($(PERF_ANIM_OVERRIDE),true)
+PRODUCT_PRODUCT_PROPERTIES += \
+    debug.sf.predict_hwc_composition_strategy=0
+endif
+
+# Other ROM feature flags
+PERF_ANIM_OVERRIDE ?= false
+
+# Quick Switch
+TARGET_DEFAULT_PIXEL_LAUNCHER ?= true
+ifeq ($(WITH_GMS),true)
+ifeq ($(TARGET_DEFAULT_PIXEL_LAUNCHER), true)
+# Pixel Launcher
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.sys.default_launcher=1 \
+    persist.sys.quickswitch_pixel_shipped=1
+else
+# Launcher3
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.sys.default_launcher=0 \
+    persist.sys.quickswitch_pixel_shipped=1
+endif
+else
+PRODUCT_PRODUCT_PROPERTIES += \
+    persist.sys.default_launcher=0
+endif
+
+ifeq ($(SURFACE_FLINGER_BOOST),true)
+PRODUCT_PRODUCT_PROPERTIES += \
+    ro.surface_flinger.uclamp.min=135
+endif
